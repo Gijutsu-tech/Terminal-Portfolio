@@ -1,6 +1,8 @@
 let screen = document.getElementById("terminal");
 var cmd = document.getElementsByClassName("cmd")[0];
 let value, divName, text;
+let history = [];
+let historyIndex;
 const keyPress = new Audio('./Media/key-press.mp3');
 const commands = {
     about: (args) => {
@@ -31,7 +33,6 @@ let handleKeyPress = (e) => {
     // keyPress.play();
     if (e.key === "Enter") {
         if (!e.target.value) {
-            
         }
         else {
             value = e.target.value;
@@ -48,9 +49,27 @@ let handleKeyPress = (e) => {
                 createDiv(divName, `psh: command not found: ${value}`)
             }
         }
-
+        history.push(value.trim());
+        historyIndex = (history.length);
+        console.log(historyIndex);
         createLine();
     };
+    if (e.key === "ArrowUp"){
+        if (historyIndex >= 1) {
+            historyIndex -= 1;
+            console.log(historyIndex);
+            console.log(history[historyIndex]);
+        }
+        e.target.value = history[historyIndex];
+    }
+    if (e.key === "ArrowDown"){
+        if (historyIndex < (history.length) - 1) {
+            historyIndex += 1;
+            console.log(historyIndex);
+            console.log(history[historyIndex]);
+        }
+        e.target.value = history[historyIndex];
+    }
 }
 
 cmd.addEventListener("keydown", handleKeyPress);
