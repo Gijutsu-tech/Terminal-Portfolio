@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-optical-sizing: auto;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#terminal {
+  display: flex;
+  width: 94%;
+  height: 88%;
+  background: rgba(0, 0, 0, 0.74);
+  border-radius: 0px;
+  border: 3px solid transparent;
+  border-image: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
+  border-image-slice: 1;
+  padding: 1.5%;
+  font-size: 115%;
+  color: white;
+  flex-direction: column;
+  gap: 1%;
+  overflow-y: scroll;
+}
+
+.line {
+  display: flex;
+  flex-direction: row;
+  gap: 1%;
+  align-items: center;
+}
+
+.cmd {
+  flex: 1;
+  border: none;
+  font-size: 100%;
+  background: transparent;
+  color: #00FF00;
+}
+
+.cmd:focus {
+  border: none;
+}
+
+.cmd:focus {
+  outline: none;
+}
+
+#wall{
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  top: 0px;
+  left: 0px;
+  z-index: -1;
+  object-fit: cover;
+}
+
+#cursor-fade {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 5;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.097) 0%,
+    rgba(255, 255, 255, 0) 50%
+  );
+  mix-blend-mode: lighten;
+  transition: background 0.1s ease;
+}
