@@ -81,3 +81,8 @@ body {
   mix-blend-mode: lighten;
   transition: background 0.1s ease;
 }
+
+.sprite {
+  height: auto;
+  width: 200px;
+}
