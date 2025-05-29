@@ -1,8 +1,13 @@
 let screen = document.getElementById("terminal");
 var cmd = document.getElementsByClassName("cmd")[0];
 let value, divName, text;
-let history = [];
-let historyIndex;
+if (localStorage.getItem("cmdHistory") == null) {
+    var cmdHistory = [];
+}
+else {
+    var cmdHistory = JSON.parse(localStorage.getItem("cmdHistory") || "[]");
+}
+let cmdHistoryIndex = cmdHistory.length;
 const keyPress = new Audio('./Media/key-press.mp3');
 
 let fileSystem = {
@@ -117,6 +122,24 @@ const commands = {
             });
 
     },
+    "sudo": (args) => {
+        return new Promise((resolve) => {
+            if (args[0] == 'rm' && args[1] == '-rf' && args[2] == '/') {
+                createDiv("terminal", "rm: removing root directory...");
+                createDiv("terminal", "rm: Deleting /home ...");
+                createDiv("terminal", "rm: Deleting /bin ...");
+                createDiv("terminal", "rm: Deleting /boot ...");
+                setTimeout(() => {
+                    document.body.style.backgroundColor = "black";
+                    document.body.innerHTML = "💀";
+                    document.body.style.fontSize = "50vh"
+                    // resolve(); // 👈 resolves the promise after timeout
+                }, 1000);
+            } else {
+                resolve(); // if it's not the cursed command
+            }
+        });
+    },
     help: (args) => {
         divName = 'help';
         text = "Available commands: " + Object.keys(commands).join(", ");
@@ -154,21 +177,23 @@ let handleKeyPress = (e) => {
             else {
                 let divName = 'err';
                 createDiv(divName, `psh: command not found: ${value}`)
+                createLine();
             }
         }
-        history.push(value.trim());
-        historyIndex = (history.length);
+        cmdHistory.push(value.trim());
+        cmdHistoryIndex = (cmdHistory.length);
+        localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
     };
     if (e.key === "ArrowUp") {
-        if (historyIndex >= 1) {
-            historyIndex -= 1;
-            e.target.value = history[historyIndex];
+        if (cmdHistoryIndex >= 1) {
+            cmdHistoryIndex -= 1;
+            e.target.value = cmdHistory[cmdHistoryIndex];
         }
     }
     if (e.key === "ArrowDown") {
-        if (historyIndex < (history.length) - 1) {
-            historyIndex += 1;
-            e.target.value = history[historyIndex];
+        if (cmdHistoryIndex < (cmdHistory.length) - 1) {
+            cmdHistoryIndex += 1;
+            e.target.value = cmdHistory[cmdHistoryIndex];
         }
         else {
             e.target.value = "";
