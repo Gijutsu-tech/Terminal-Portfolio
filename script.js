@@ -7,6 +7,12 @@ if (localStorage.getItem("cmdHistory") == null) {
 else {
     var cmdHistory = JSON.parse(localStorage.getItem("cmdHistory") || "[]");
 }
+if (localStorage.getItem("todoList") == null) {
+    var todoList = [];
+}
+else {
+    var todoList = JSON.parse(localStorage.getItem("todoList") || "[]");
+}
 let cmdHistoryIndex = cmdHistory.length;
 const keyPress = new Audio('./Media/key-press.mp3');
 
@@ -39,7 +45,6 @@ const commands = {
     },
     ls: (args) => {
         divName = "ls";
-        console.log((pwd));
         text = Object.keys(pwd).join(" ");
         createDiv(divName, text);
     },
@@ -54,7 +59,6 @@ const commands = {
                     if (argArr[i] != "parth") {
                         path = path + argArr[i] + '/';
                     }
-                    console.log(path);
                     pwd = current;
                 }
                 else {
@@ -74,6 +78,8 @@ const commands = {
         createDiv("pwd", path);
     },
     pokedex: (args) => {
+        console.log("pokedex..");
+        
         divName = "pokedex";
         if (args.length != 1) {
             createDiv(divName, `psh: invalid number of args (${args.length})`);
@@ -81,8 +87,6 @@ const commands = {
         }
         let pokemon = args[0].trim();
         const url = "https://pokeapi.co/api/v2/pokemon/" + pokemon;
-        console.log(pokemon);
-        console.log(url);
         return fetch(url)
             .then(response => response.json()) // Convert response to JSON
             .then(data => {
@@ -122,7 +126,66 @@ const commands = {
             });
 
     },
-    "sudo": (args) => {
+    todo: (args) => {
+        let divName = "todo";
+        let todoTask = "";
+        if (args[0] == "add") {
+            if (args[1] == undefined) {
+                createDiv(divName, "psh: No todo specified!");
+            }
+            else {
+                for (let i = 1; i < args.length; i++) {
+                    todoTask = todoTask + ' ' + args[i];
+                }
+                todoTask = todoTask.slice(1);
+                todoList.push(todoTask);
+                createDiv(divName, "Added todo!: " + todoTask);
+                localStorage.setItem("todoList", JSON.stringify(todoList));
+            }
+        }
+        else if (args[0] == "rm"){
+            if (args[1] == undefined) {
+                createDiv(divName, "psh: No todo specified!");
+            }
+            else {
+                // Get user input and convert it into a string
+                for (let i = 1; i < args.length; i++) {
+                    todoTask = todoTask + ' ' + args[i];
+                }
+
+                // Remove unintentionally added first character, space
+                todoTask = todoTask.slice(1); 
+
+                // Remove todoTask if it exists
+                for (let i = 0; i < todoList.length; i++) {
+                    if (todoList[i] == todoTask) {
+                        todoList.splice(i, 1);
+                        createDiv(divName, "Removed todo!: " + todoTask);
+                        localStorage.setItem("todoList", JSON.stringify(todoList));
+                        return;
+                    }
+                }
+                createDiv(divName, "psh: No todo named: " + todoTask);
+            }
+        }
+        else if (args[0] == "lst") {
+            if (args[1] != undefined) {
+                createDiv(divName, "psh: Invalid argument: " + args[1]);
+            }
+            else {
+                createDiv(divName, "Found "+todoList.length+" todos.")
+                for (let i = 0; i < todoList.length; i++) {
+                    const todoTask = todoList[i];
+                    createDiv(divName, i+1+". "+todoTask);
+                }
+            }
+        }
+        else {
+            text = "psh: Invalid argument! Available actions are: add , rm , lst";
+            createDiv(divName, text);
+        }
+    },
+    sudo: (args) => {
         return new Promise((resolve) => {
             if (args[0] == 'rm' && args[1] == '-rf' && args[2] == '/') {
                 createDiv("terminal", "rm: removing root directory...");
@@ -133,10 +196,9 @@ const commands = {
                     document.body.style.backgroundColor = "black";
                     document.body.innerHTML = "💀";
                     document.body.style.fontSize = "50vh"
-                    // resolve(); // 👈 resolves the promise after timeout
                 }, 1000);
             } else {
-                resolve(); // if it's not the cursed command
+                resolve();
             }
         });
     },
@@ -151,7 +213,6 @@ const commands = {
 
 
 let handleKeyPress = (e) => {
-    // keyPress.play();
     if (e.key === "Enter") {
         if (!e.target.value) {
         }
@@ -179,19 +240,22 @@ let handleKeyPress = (e) => {
                 createDiv(divName, `psh: command not found: ${value}`)
                 createLine();
             }
+            cmdHistoryIndex = cmdHistory.push(value.trim());
+            cmdHistoryIndex -= 1;
+            console.log(JSON.stringify(cmdHistory));
+            localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
         }
-        cmdHistory.push(value.trim());
-        cmdHistoryIndex = (cmdHistory.length);
-        localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
     };
     if (e.key === "ArrowUp") {
+        console.log(cmdHistoryIndex);
         if (cmdHistoryIndex >= 1) {
             cmdHistoryIndex -= 1;
             e.target.value = cmdHistory[cmdHistoryIndex];
         }
     }
     if (e.key === "ArrowDown") {
-        if (cmdHistoryIndex < (cmdHistory.length) - 1) {
+        console.log(cmdHistoryIndex);
+        if (cmdHistoryIndex < cmdHistory.length - 1) {
             cmdHistoryIndex += 1;
             e.target.value = cmdHistory[cmdHistoryIndex];
         }
@@ -238,7 +302,6 @@ function cursorFade() {
     screen.addEventListener('mousemove', (e) => {
         fadeCursor.style.left = `${e.clientX - 150}px`;
         fadeCursor.style.top = `${e.clientY - 150}px`;
-        // console.log(`${e.clientX - 150}px ${e.clientY - 150}px`);
     });
 }
 
