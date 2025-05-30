@@ -1,3 +1,5 @@
+// Pls someone fix cmdHistory weird behaviour if they can!
+
 let screen = document.getElementById("terminal");
 var cmd = document.getElementsByClassName("cmd")[0];
 let value, divName, text;
@@ -9,11 +11,12 @@ else {
 }
 if (localStorage.getItem("todoList") == null) {
     var todoList = [];
+    var cmdHistoryIndex = 0;
 }
 else {
     var todoList = JSON.parse(localStorage.getItem("todoList") || "[]");
+    var cmdHistoryIndex = cmdHistory.length - 1;
 }
-let cmdHistoryIndex = cmdHistory.length;
 const keyPress = new Audio('./Media/key-press.mp3');
 
 let fileSystem = {
@@ -79,7 +82,7 @@ const commands = {
     },
     pokedex: (args) => {
         console.log("pokedex..");
-        
+
         divName = "pokedex";
         if (args.length != 1) {
             createDiv(divName, `psh: invalid number of args (${args.length})`);
@@ -143,7 +146,7 @@ const commands = {
                 localStorage.setItem("todoList", JSON.stringify(todoList));
             }
         }
-        else if (args[0] == "rm"){
+        else if (args[0] == "rm") {
             if (args[1] == undefined) {
                 createDiv(divName, "psh: No todo specified!");
             }
@@ -154,7 +157,7 @@ const commands = {
                 }
 
                 // Remove unintentionally added first character, space
-                todoTask = todoTask.slice(1); 
+                todoTask = todoTask.slice(1);
 
                 // Remove todoTask if it exists
                 for (let i = 0; i < todoList.length; i++) {
@@ -173,16 +176,36 @@ const commands = {
                 createDiv(divName, "psh: Invalid argument: " + args[1]);
             }
             else {
-                createDiv(divName, "Found "+todoList.length+" todos.")
+                createDiv(divName, "Found " + todoList.length + " todos.")
                 for (let i = 0; i < todoList.length; i++) {
                     const todoTask = todoList[i];
-                    createDiv(divName, i+1+". "+todoTask);
+                    createDiv(divName, i + 1 + ". " + todoTask);
                 }
             }
         }
         else {
             text = "psh: Invalid argument! Available actions are: add , rm , lst";
             createDiv(divName, text);
+        }
+    },
+    quote: async (args) => {
+        let divName = "quote";
+        try {
+            const res = await fetch("https://raw.githubusercontent.com/Gijutsu-tech/Programmer-inspiration/main/quotes.json");
+            const data = await res.json();
+            const quote = data[Math.floor(Math.random() * data.length)];
+            let quoteText = document.createElement("div");
+            quoteText.innerHTML = `"${quote.text}"`;
+            // let quoteText = createDiv("quote", `"${quote.text}"`);
+            let quoteAuthor = document.createElement("div");
+            quoteAuthor.innerHTML = `— ${quote.author || "Unknown"}`;
+            // let quoteAuthor = createDiv("author", `— ${quote.author || "Unknown"}`);
+            quoteText.className = "quote";
+            quoteAuthor.className = "quote";
+            screen.appendChild(quoteText);
+            screen.appendChild(quoteAuthor);
+        } catch {
+            createDiv(divName, "psh: Could not generate quote. Maybe Linus didn't want you to read his quotes.");
         }
     },
     sudo: (args) => {
@@ -240,26 +263,30 @@ let handleKeyPress = (e) => {
                 createDiv(divName, `psh: command not found: ${value}`)
                 createLine();
             }
-            cmdHistoryIndex = cmdHistory.push(value.trim());
-            cmdHistoryIndex -= 1;
+            cmdHistory.push(value.trim());
+            cmdHistoryIndex = cmdHistory.length - 1;
             console.log(JSON.stringify(cmdHistory));
             localStorage.setItem("cmdHistory", JSON.stringify(cmdHistory));
         }
     };
     if (e.key === "ArrowUp") {
-        console.log(cmdHistoryIndex);
-        if (cmdHistoryIndex >= 1) {
+        if (cmdHistory.length === 0) return;
+
+        if (cmdHistoryIndex > 0) {
             cmdHistoryIndex -= 1;
-            e.target.value = cmdHistory[cmdHistoryIndex];
         }
+
+        e.target.value = cmdHistory[cmdHistoryIndex];
     }
+
     if (e.key === "ArrowDown") {
-        console.log(cmdHistoryIndex);
+        if (cmdHistory.length === 0) return;
+
         if (cmdHistoryIndex < cmdHistory.length - 1) {
             cmdHistoryIndex += 1;
             e.target.value = cmdHistory[cmdHistoryIndex];
-        }
-        else {
+        } else {
+            cmdHistoryIndex = cmdHistory.length; // move to "empty" state after last command
             e.target.value = "";
         }
     }
